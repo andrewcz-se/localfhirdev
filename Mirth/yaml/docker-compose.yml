@@ -1,0 +1,47 @@
+services:
+  mirth-postgres:
+    image: postgres:14
+    container_name: mirth-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mirthdb
+      POSTGRES_USER: mirth_admin
+      POSTGRES_PASSWORD: secure_mirth_password
+    volumes:
+      - mirth-db-data:/var/lib/postgresql/data
+    # The healthcheck ensures Postgres is actively accepting connections
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mirth_admin -d mirthdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mirth-connect:
+    image: nextgenhealthcare/connect:4.5.2
+    container_name: mirth-connect
+    restart: unless-stopped
+    depends_on:
+      mirth-postgres:
+        # Mirth will wait until the Postgres healthcheck passes before starting
+        condition: service_healthy
+    ports:
+      # Host port 8081 maps to container port 8080 (HTTP)
+      - "8081:8080"
+      # Host port 8444 maps to container port 8443 (HTTPS)
+      - "8444:8443"
+      - "9001:9001" # Port for HL7 Inspector
+    environment:
+      - DATABASE=postgres
+      - DATABASE_URL=jdbc:postgresql://mirth-postgres:5432/mirthdb
+      - DATABASE_MAX_CONNECTIONS=20
+      - DATABASE_USERNAME=mirth_admin
+      - DATABASE_PASSWORD=secure_mirth_password
+      - VMOPTIONS=-Xmx512m
+    volumes:
+      - mirth-appdata:/opt/connect/appdata
+      - mirth-logs:/opt/connect/logs
+
+volumes:
+  mirth-db-data:
+  mirth-appdata:
+  mirth-logs:
