@@ -1,0 +1,71 @@
+<channel version="4.5.2">
+  <id>{{channelId}}</id>
+  <nextMetaDataId>2</nextMetaDataId>
+  <name>{{channelName}}</name>
+  <description>Automated channel generated via MCP agent for HTTP/JSON.</description>
+  <revision>1</revision>
+  <sourceConnector version="4.5.2">
+    <metaDataId>0</metaDataId>
+    <name>sourceConnector</name>
+    <properties class="com.mirth.connect.connectors.tcp.TcpReceiverProperties" version="4.5.2">
+      <pluginProperties/>
+      <listenerConnectorProperties>
+        <host>0.0.0.0</host>
+        <port>{{sourcePort}}</port>
+      </listenerConnectorProperties>
+      <sourceConnectorProperties>
+        <responseVariable>Auto-generate (After source transformer)</responseVariable>
+        <respondAfterProcessing>true</respondAfterProcessing>
+      </sourceConnectorProperties>
+      <transmissionModeProperties class="com.mirth.connect.plugins.mllpmode.MLLPModeProperties">
+        <pluginPointName>MLLP</pluginPointName>
+        <startOfMessageBytes>0B</startOfMessageBytes>
+        <endOfMessageBytes>1C0D</endOfMessageBytes>
+      </transmissionModeProperties>
+    </properties>
+    <transformer version="4.5.2">
+      <elements/>
+      <inboundDataType>HL7V2</inboundDataType>
+      <outboundDataType>JSON</outboundDataType>
+    </transformer>
+  </sourceConnector>
+  <destinationConnectors>
+    <connector version="4.5.2">
+      <metaDataId>1</metaDataId>
+      <name>HTTP JSON Destination</name>
+      <properties class="com.mirth.connect.connectors.http.HttpDispatcherProperties" version="4.5.2">
+        <pluginProperties/>
+        <destinationConnectorProperties>
+          <queueEnabled>false</queueEnabled>
+          <sendFirst>false</sendFirst>
+          <retryIntervalMillis>10000</retryIntervalMillis>
+          <regenerateTemplate>false</regenerateTemplate>
+          <retryCount>0</retryCount>
+          <rotate>false</rotate>
+          <includeFilterClasses>false</includeFilterClasses>
+          <threadCount>1</threadCount>
+        </destinationConnectorProperties>
+        <host>{{destinationUrl}}</host>
+        <useProxyServer>false</useProxyServer>
+        <method>post</method>
+        <headers>
+          <property>
+            <name>Content-Type</name>
+            <value>application/json</value>
+          </property>
+        </headers>
+        <parameters/>
+        <useAuthentication>false</useAuthentication>
+        <content>${message.encodedData}</content>
+        <contentType>application/json</contentType>
+        <dataTypeBinary>false</dataTypeBinary>
+        <charset>UTF-8</charset>
+      </properties>
+      <transformer version="4.5.2">
+        <elements/>
+        <inboundDataType>JSON</inboundDataType>
+        <outboundDataType>JSON</outboundDataType>
+      </transformer>
+    </connector>
+  </destinationConnectors>
+</channel>
