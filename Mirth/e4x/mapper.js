@@ -30,7 +30,7 @@ if (msg['OBX'].length() > 0) {
         categoryDisplay = "Laboratory";
     }
 
-    // OBR-7: Effective Date Formatting (HL7 to FHIR ISO 8601)
+    // OBR-7: Effective Date
     var obr7 = obr['OBR.7']['OBR.7.1'].toString();
     var effectiveDateTime = "";
     if (obr7.length >= 8) {
@@ -39,6 +39,19 @@ if (msg['OBX'].length() > 0) {
             effectiveDateTime += "T" + obr7.substring(8,10) + ":" + obr7.substring(10,12) + ":00Z";
         }
     }
+    
+    // OBR-2: Order Number (Used for ID Generation)
+    var orderNum = obr['OBR.2']['OBR.2.1'].toString();
+    if (!orderNum) {
+        orderNum = obr['OBR.3']['OBR.3.1'].toString(); // Fallback to Filler Order Number
+    }
+
+    // OBR-25: Result Status Mapping
+    var obr25 = obr['OBR.25']['OBR.25.1'].toString();
+    var fhirStatus = "final"; // Safe default
+    if (obr25 === "P") fhirStatus = "preliminary";
+    if (obr25 === "C") fhirStatus = "corrected";
+    if (obr25 === "F") fhirStatus = "final";
 
     // --- 4. Initialize the FHIR Transaction Bundle ---
     var fhirBundle = {
@@ -51,7 +64,28 @@ if (msg['OBX'].length() > 0) {
     for (var j = 0; j < msg['OBX'].length(); j++) {
         var obx = msg['OBX'][j]; 
         
-        // OBX-6 & OBX-7: Reference Range and Units
+        // --- 5a. Deterministic ID Generation ---
+        var loincCode = obx['OBX.3']['OBX.3.1'].toString();
+        var rawObservationId = orderNum + "-" + loincCode;
+        var safeObservationId = rawObservationId.replace(/[^A-Za-z0-9\-\.]/g, '');
+        
+        // --- 5b. Extract OBX-Specific NTE Segments (Notes) ---
+        var nteNotes = [];
+        var obxIndex = obx.childIndex(); 
+        
+        for (var k = obxIndex + 1; k < msg.children().length(); k++) {
+            var nextSegment = msg.children()[k];
+            if (nextSegment.name().toString() === 'NTE') {
+                var comment = nextSegment['NTE.3']['NTE.3.1'].toString();
+                if (comment) {
+                    nteNotes.push(comment);
+                }
+            } else {
+                break; 
+            }
+        }
+        
+        // --- 5c. Extract Standard OBX Data ---
         var obx6 = obx['OBX.6']['OBX.6.1'].toString();
         var obx7 = obx['OBX.7']['OBX.7.1'].toString();
         var lowVal = "";
@@ -63,7 +97,6 @@ if (msg['OBX'].length() > 0) {
             highVal = rangeParts[1].trim();
         }
         
-        // OBX-8: Interpretation
         var obx8 = obx['OBX.8']['OBX.8.1'].toString();
         var interpDisplay = obx8;
         if (obx8 === "H") interpDisplay = "High";
@@ -73,10 +106,11 @@ if (msg['OBX'].length() > 0) {
         // Construct Individual Observation Resource
         var observation = {
             "resourceType": "Observation",
+            "id": safeObservationId, 
             "meta": {
                 "source": provenanceSource
             },
-            "status": "final",
+            "status": fhirStatus, // Injected dynamic status
             "category": [
                 {
                     "coding": [
@@ -92,19 +126,24 @@ if (msg['OBX'].length() > 0) {
                 "coding": [
                     {
                         "system": "http://loinc.org",
-                        "code": obx['OBX.3']['OBX.3.1'].toString(),
+                        "code": loincCode,
                         "display": obx['OBX.3']['OBX.3.2'].toString() 
                     }
                 ],
                 "text": obx['OBX.3']['OBX.3.2'].toString() 
             },
-            "subject": {
+		    "subject": {
                 "identifier": {
                     "system": mrnSystemUrl,
                     "value": targetMrn
                 }
             },
             "effectiveDateTime": effectiveDateTime,
+            "performer": [
+                {
+                    "display": sendingFacility 
+                }
+            ],
             "valueQuantity": {
                 "value": parseFloat(obx['OBX.5']['OBX.5.1'].toString()), 
                 "unit": obx6 
@@ -135,17 +174,27 @@ if (msg['OBX'].length() > 0) {
             ]
         };
         
-        // Clean up empty objects to prevent FHIR validation errors
+        // --- 5d. Append Notes (If Any) ---
+        if (nteNotes.length > 0) {
+            observation.note = [];
+            for (var n = 0; n < nteNotes.length; n++) {
+                observation.note.push({
+                    "text": nteNotes[n]
+                });
+            }
+        }
+        
+        // Clean up empty objects
         if (!obx8) delete observation.interpretation;
         if (!obx7) delete observation.referenceRange;
         if (!effectiveDateTime) delete observation.effectiveDateTime;
         
-        // Add the Observation to the Bundle Array
+        // Add the Observation to the Bundle Array using PUT logic
         fhirBundle.entry.push({
             "resource": observation,
             "request": {
-                "method": "POST",
-                "url": "Observation"
+                "method": "PUT",
+                "url": "Observation/" + safeObservationId 
             }
         });
     }
