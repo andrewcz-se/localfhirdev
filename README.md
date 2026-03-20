@@ -1,6 +1,6 @@
-# Local FHIR Development Environment
+# Local FHIR & Interface Development Environment
 
-This repository provides a complete local development environment for healthcare interoperability, featuring a **HAPI FHIR Server** and **Mirth Connect** for HL7v2 to FHIR transformation.
+This repository provides a complete local development environment for healthcare interoperability, featuring a **HAPI FHIR Server**, **Mirth Connect** for HL7v2 to FHIR transformation and a **Model Context Protocol (MCP)** server that provides a connection between AI agents and the Mirth Connect REST API. 
 
 ## Project Structure
 
@@ -8,6 +8,7 @@ This repository provides a complete local development environment for healthcare
 - **`Mirth/`**: 
     - **`yaml/`**: Docker configuration for Mirth Connect and its dedicated PostgreSQL database.
     - **`e4x/`**: JavaScript (E4X) mapping logic used within Mirth Connect to transform HL7v2 messages into FHIR resources.
+    - **`mirth-mcp-server`**: A Model Context Protocol (MCP) server that provides a connection between AI agents and the Mirth Connect REST API.
 
 ## Components
 
@@ -23,6 +24,9 @@ Mirth Connect is a powerful healthcare integration engine used to route and tran
 - **Database**: PostgreSQL 14
 - **Admin Interface**: `https://localhost:8444` (External port 8444 -> Internal 8443)
 - **HTTP Listener**: `http://localhost:8081`
+
+### 3. Mirth MCP Server
+A Model Context Protocol (MCP) server that provides a connection between AI agents and the Mirth Connect REST API. It enables autonomous management of the basic Mirth channel lifecycle using a set of MCP tools.
 
 ## Getting Started
 
@@ -45,7 +49,7 @@ Mirth Connect is a powerful healthcare integration engine used to route and tran
 
 ## HL7v2 to FHIR Mapping (Observation)
 
-The `Mirth/e4x/mapper.js` script handles the transformation of HL7v2 `ORU^R01` messages into FHIR `Observation` resources bundled in a `transaction`.
+The `Mirth/e4x/mapper.js` is an example script Transformer script that handles the transformation of HL7v2 `ORU^R01` messages into FHIR `Observation` resources bundled in a `transaction`.
 
 ### Key Mapping Features:
 - **Source**: Automatically generates a source URI from `MSH-3` and `MSH-4`.
