@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "mirth-engine": {
+      "command": "node",
+      "args": [
+        "X:/path/to/mirth-mcp-server/index.js"
+      ],
+      "env": {
+        "MIRTH_URL": "https://localhost:8444",
+        "MIRTH_USERNAME": "admin",
+        "MIRTH_PASSWORD": "adminpassword",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+      }
+    }
+  }
+}

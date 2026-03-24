@@ -26,7 +26,7 @@ This project is a Model Context Protocol (MCP) server that provides a connection
 - **Install Dependencies**: `pnpm install` or `npm install`.
 - **Configuration**: 
   - Copy `.env.example` to `.env`.
-  - Set `MIRTH_URL`, `MIRTH_USERNAME`, `MIRTH_PASSWORD`.
+  - Update the example user name and password and set `MIRTH_URL`, `MIRTH_USERNAME`, `MIRTH_PASSWORD`.
   - Set `NODE_TLS_REJECT_UNAUTHORIZED=0` for local Mirth instances with self-signed certs.
 - **Run the Server**: `node index.js`.
 
@@ -61,3 +61,4 @@ This project is a Model Context Protocol (MCP) server that provides a connection
 - `templates/channel-template-mllp-to-mllp.xml`: The primary reference for Mirth channel XML structure for MLLP to MLLP interfaces.
 - `templates/channel-template-mllp-to-http.xml`: The primary reference for Mirth channel XML structure for MLLP to HTTP interfaces.
 - `openapi.json`: The Mirth Connect REST API specification.
+- `config/`: Reference MCP config files for Codex (config.toml) and Gemini (settings.json). Note, I tested this on a local server with NODE_TLS_REJECT_UNAUTHORIZED=0 to bypass TLS verification. You can export and setup your Mirth keys as required.

@@ -1,0 +1,7 @@
+[mcp_servers.mirth-mcp-server]
+command = "node"
+args = ["X:/path/to/mirth-mcp-server/index.js"]
+startup_timeout_sec = 30
+
+[mcp_servers.mirth-mcp-server.env]
+NODE_TLS_REJECT_UNAUTHORIZED = "0"
