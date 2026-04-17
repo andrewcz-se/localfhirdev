@@ -1,13 +1,13 @@
 # Local FHIR & Interface Development Environment
 
-This repository provides a complete local development environment for healthcare interoperability, featuring a **HAPI FHIR Server**, **Mirth Connect** for HL7v2 to FHIR transformation and a **Model Context Protocol (MCP)** server that provides a connection between AI agents and the Mirth Connect REST API. 
+This repository provides a complete local development environment for healthcare interoperability, featuring a **HAPI FHIR Server**, **Mirth Connect Server** for HL7v2 to FHIR transformation and a **Model Context Protocol (MCP)** server that provides a connection between AI agents and the Mirth Connect REST API. 
 
 ## Project Structure
 
-- **`HAPI FHIR Server/`**: Contains the Docker configuration for a HAPI FHIR JPA server backed by PostgreSQL.
-- **`Mirth/`**: 
-    - **`yaml/`**: Docker configuration for Mirth Connect and its dedicated PostgreSQL database.
-    - **`e4x/`**: JavaScript (E4X) mapping logic used within Mirth Connect to transform HL7v2 messages into FHIR resources.
+- **`hapi_fhir_server/`**: Contains the Docker configuration for a HAPI FHIR JPA server backed by PostgreSQL.
+- **`mirth/`**: 
+    - **`docker_config/`**: Docker configuration for Mirth Connect and its dedicated PostgreSQL database.
+    - **`mappings/`**: JavaScript (E4X) mapping logic used within Mirth Connect to transform HL7v2 messages into FHIR resources.
     - **`mirth-mcp-server`**: A Model Context Protocol (MCP) server that provides a connection between AI agents and the Mirth Connect REST API.
 
 ## Components
@@ -37,19 +37,19 @@ A Model Context Protocol (MCP) server that provides a connection between AI agen
 
 1. **Start the HAPI FHIR Server:**
    ```bash
-   cd "HAPI FHIR Server"
+   cd "hapi_fhir_server/docker_config/"
    docker-compose up -d
    ```
 
 2. **Start Mirth Connect:**
    ```bash
-   cd ../Mirth/yaml
+   cd ../mirth/mirth_server/docker_config/
    docker-compose up -d
    ```
 
 ## HL7v2 to FHIR Mapping (Observation)
 
-The `Mirth/e4x/mapper.js` is an example script Transformer script that handles the transformation of HL7v2 `ORU^R01` messages into FHIR `Observation` resources bundled in a `transaction`.
+The `mirth/mappings/e4x/mapper.js` is an example script Transformer script that handles the transformation of HL7v2 `ORU^R01` messages into FHIR `Observation` resources bundled in a `transaction`.
 
 ### Key Mapping Features:
 - **Source**: Automatically generates a source URI from `MSH-3` and `MSH-4`.
